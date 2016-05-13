@@ -9,11 +9,11 @@ import imagemin from 'gulp-imagemin';
 import runSequence from 'run-sequence';
 import notifier from 'node-notifier';
 import uglify from 'gulp-uglify';
-import rollup from 'gulp-rollup';
-import rollupNodeResolve from 'rollup-plugin-node-resolve';
-import rollupCommonjs from 'rollup-plugin-commonjs';
-import rollupBabel from 'rollup-plugin-babel';
-import rollupReplace from 'rollup-plugin-replace';
+import browserify from 'browserify';
+import envify from 'envify/custom';
+import babelify from 'babelify';
+import source from 'vinyl-source-stream'; // helper for browserify text stream to gulp pipeline
+import buffer from 'vinyl-buffer'; // helper for browserify
 
 let errored = false;
 let errorHandler = function (task) {
@@ -96,33 +96,34 @@ gulp.task('buildpublic:imagemin', function () {
 // Babel
 
 let es67 = (prod = false) => {
-  let env = 'development';
-  if (prod) {
-    env = 'production';
-  }
-
-  const plugins = [
-    rollupBabel({ babelrc: false, exclude: './node_modules/**', presets: ['es2015-rollup', 'stage-3', 'react'] }),
-    rollupNodeResolve({ jsnext: true, main: true, browser: true }),
-    rollupCommonjs({ include: './node_modules/**' }),
-    rollupReplace({ 'process.env.NODE_ENV': JSON.stringify(env) })
-  ];
-
-  return gulp.src('./app/js/app.js', {read: false})
-    .pipe(rollup({
-      format: 'iife',
-      plugins
-    }))
-    .pipe(plumber(errorHandler('es6-7')));
+  const babelPlugins = [];
+  if (prod) babelPlugins.push(['module-alias', [{ 'src': 'npm:react-lite', 'expose': 'react' }, { 'src': 'npm:react-lite', 'expose': 'react-dom' }]]);
+  return browserify({ entries: './app/js/app.js', debug: false }) // debug for sourcemaps
+  .transform(babelify, { presets: ['es2015', 'stage-3', 'react'], plugins: babelPlugins });
 };
 
 gulp.task('es6-7:dev', function () {
   return es67()
-    .pipe(gulp.dest('./public/js/'));
+    .bundle()
+    .on('error', function (error) {
+      errorHandler('es6-7')(error);
+      this.emit('end');
+    }) // Don't crash if failed, plumber doesn't work with browserify
+    .pipe(source('bundle.min.js'))
+    .pipe(buffer())
+    .pipe(gulp.dest('./public/js'));
 });
 
 gulp.task('es6-7:dist', function () {
   return es67(true)
+    .transform(envify({ NODE_ENV: 'production' }), { global: true }) // global: act on node_modules (here react prod mode)
+    .bundle()
+    .on('error', function (error) {
+      errorHandler('es6-7')(error);
+      this.emit('end');
+    }) // Don't crash if failed, plumber doesn't work with browserify
+    .pipe(source('bundle.min.js'))
+    .pipe(buffer())
     .pipe(uglify())
     .pipe(gulp.dest('./public/js/'));
 });
