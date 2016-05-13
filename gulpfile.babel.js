@@ -4,6 +4,9 @@ import gulp from 'gulp';
 import plumber from 'gulp-plumber'; // help to avoid crash if error in a task
 import newer from 'gulp-newer';
 import watch from 'gulp-watch'; // gulp.watch doesn't detect new files
+import smoosher from 'gulp-smoosher';
+import gzip from 'gulp-gzip';
+import rename from 'gulp-rename';
 import del from 'del'; // delete files
 import imagemin from 'gulp-imagemin';
 import runSequence from 'run-sequence';
@@ -49,7 +52,7 @@ gulp.task('dev', ['buildpublic:dev'], function (done) {
 });
 
 gulp.task('dist', function (done) {
-  runSequence('buildpublic:dist', function () {
+  runSequence('buildpublic:dist', 'builduigz', function () {
     if (errored) {
       console.log('Distribution failed');
       process.exit(-1);
@@ -60,6 +63,15 @@ gulp.task('dist', function (done) {
 //  ####################
 //  # public directory #
 //  ####################
+
+gulp.task('builduigz', function (done) {
+  return gulp.src('index.html')
+    .pipe(plumber(errorHandler('buildpublic:imagemin')))
+    .pipe(smoosher())
+    .pipe(rename('ui_bundle'))
+    .pipe(gzip())
+    .pipe(gulp.dest('./'));
+});
 
 gulp.task('buildpublic:dist', function (done) {
   runSequence(
