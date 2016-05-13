@@ -57,6 +57,8 @@ gulp.task('dist', function (done) {
       console.log('Distribution failed');
       process.exit(-1);
     }
+
+    done();
   });
 });
 
@@ -64,7 +66,7 @@ gulp.task('dist', function (done) {
 //  # public directory #
 //  ####################
 
-gulp.task('builduigz', function (done) {
+gulp.task('builduigz', function () {
   return gulp.src('index.html')
     .pipe(plumber(errorHandler('buildpublic:imagemin')))
     .pipe(smoosher())
