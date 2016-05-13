@@ -12,6 +12,9 @@ build:
         name: copy index.html
         code: cp index.html $WERCKER_OUTPUT_DIR
     - script:
+        name: copy favicon.ico
+        code: cp favicon.ico $WERCKER_OUTPUT_DIR
+    - script:
         name: copy ui_bundle.gz
         code: cp ui_bundle.gz $WERCKER_OUTPUT_DIR
     - script:
