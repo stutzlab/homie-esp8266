@@ -132,10 +132,13 @@ export default class DetailsStep extends React.Component {
     );
   }
 }
-DetailsStep.propTypes = {
-  nextStep: React.PropTypes.func.isRequired,
-  mqttConfig: React.PropTypes.object.isRequired,
-  setName: React.PropTypes.func.isRequired,
-  setDeviceId: React.PropTypes.func.isRequired,
-  setOtaCreds: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  DetailsStep.propTypes = {
+    nextStep: React.PropTypes.func.isRequired,
+    mqttConfig: React.PropTypes.object.isRequired,
+    setName: React.PropTypes.func.isRequired,
+    setDeviceId: React.PropTypes.func.isRequired,
+    setOtaCreds: React.PropTypes.func.isRequired
+  };
+}

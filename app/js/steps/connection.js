@@ -44,7 +44,10 @@ export default class ConnectionStep extends React.Component {
     );
   }
 }
-ConnectionStep.propTypes = {
-  baseApi: React.PropTypes.string.isRequired,
-  nextStep: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  ConnectionStep.propTypes = {
+    baseApi: React.PropTypes.string.isRequired,
+    nextStep: React.PropTypes.func.isRequired
+  };
+}

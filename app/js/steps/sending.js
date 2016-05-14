@@ -50,6 +50,9 @@ export default class SendingStep extends React.Component {
     );
   }
 }
-SendingStep.propTypes = {
-  sendConfig: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  SendingStep.propTypes = {
+    sendConfig: React.PropTypes.func.isRequired
+  };
+}

@@ -71,7 +71,7 @@ gulp.task('builduigz', function () {
     .pipe(plumber(errorHandler('buildpublic:imagemin')))
     .pipe(smoosher())
     .pipe(rename('ui_bundle'))
-    .pipe(gzip())
+    .pipe(gzip({ gzipOptions: { level: 9 } }))
     .pipe(gulp.dest('./'));
 });
 
@@ -111,7 +111,10 @@ gulp.task('buildpublic:imagemin', function () {
 
 let es67 = (prod = false) => {
   const babelPlugins = [];
-  if (prod) babelPlugins.push(['module-alias', [{ 'src': 'npm:react-lite', 'expose': 'react' }, { 'src': 'npm:react-lite', 'expose': 'react-dom' }]]);
+  if (prod) {
+    babelPlugins.push(['module-alias', [{ 'src': 'npm:preact', 'expose': 'react' }, { 'src': 'npm:preact', 'expose': 'react-dom' }]]);
+    babelPlugins.push(['transform-react-jsx', { 'pragma': 'React.h' }]); // Preact h render function
+  }
   return browserify({ entries: './app/js/app.js', debug: false }) // debug for sourcemaps
   .transform(babelify, { presets: ['es2015', 'stage-3', 'react'], plugins: babelPlugins });
 };

@@ -96,7 +96,10 @@ export default class InfoStep extends React.Component {
     );
   }
 }
-InfoStep.propTypes = {
-  baseApi: React.PropTypes.string.isRequired,
-  nextStep: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  InfoStep.propTypes = {
+    baseApi: React.PropTypes.string.isRequired,
+    nextStep: React.PropTypes.func.isRequired
+  };
+}

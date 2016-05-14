@@ -192,8 +192,11 @@ export default class WifiStep extends React.Component {
     );
   }
 }
-WifiStep.propTypes = {
-  baseApi: React.PropTypes.string.isRequired,
-  nextStep: React.PropTypes.func.isRequired,
-  setWifiCreds: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  WifiStep.propTypes = {
+    baseApi: React.PropTypes.string.isRequired,
+    nextStep: React.PropTypes.func.isRequired,
+    setWifiCreds: React.PropTypes.func.isRequired
+  };
+}

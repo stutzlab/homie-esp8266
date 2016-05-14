@@ -137,7 +137,10 @@ export default class MqttStep extends React.Component {
     );
   }
 }
-MqttStep.propTypes = {
-  nextStep: React.PropTypes.func.isRequired,
-  setMqttCreds: React.PropTypes.func.isRequired
-};
+
+if (process.env.NODE_ENV !== 'production') { // for Preact
+  MqttStep.propTypes = {
+    nextStep: React.PropTypes.func.isRequired,
+    setMqttCreds: React.PropTypes.func.isRequired
+  };
+}

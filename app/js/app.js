@@ -117,8 +117,8 @@ class App extends React.Component {
 
     return (
       <div className='container'>
-        <h1 className='title'>Homie for ESP8266 configurator</h1>
-        <h2 className='subtitle'>Configure your device.</h2>
+        <h1 className='title'>Homie for ESP8266</h1>
+        <h2 className='subtitle'>Set up your device.</h2>
 
         <div className='tabs is-centered'>
           <ul>
