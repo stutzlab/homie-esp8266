@@ -5,7 +5,7 @@ import plumber from 'gulp-plumber'; // help to avoid crash if error in a task
 import newer from 'gulp-newer';
 import watch from 'gulp-watch'; // gulp.watch doesn't detect new files
 import smoosher from 'gulp-smoosher';
-import gzip from 'gulp-gzip';
+import zopfli from 'gulp-zopfli';
 import rename from 'gulp-rename';
 import del from 'del'; // delete files
 import imagemin from 'gulp-imagemin';
@@ -71,7 +71,7 @@ gulp.task('builduigz', function () {
     .pipe(plumber(errorHandler('buildpublic:imagemin')))
     .pipe(smoosher())
     .pipe(rename('ui_bundle'))
-    .pipe(gzip({ gzipOptions: { level: 9 } }))
+    .pipe(zopfli())
     .pipe(gulp.dest('./'));
 });
 
