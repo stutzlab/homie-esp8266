@@ -111,10 +111,7 @@ gulp.task('buildpublic:imagemin', function () {
 
 let es67 = (prod = false) => {
   const babelPlugins = [];
-  if (prod) {
-    babelPlugins.push(['module-alias', [{ 'src': 'npm:preact', 'expose': 'react' }, { 'src': 'npm:preact', 'expose': 'react-dom' }]]);
-    babelPlugins.push(['transform-react-jsx', { 'pragma': 'React.h' }]); // Preact h render function
-  }
+  if (prod) babelPlugins.push(['module-alias', [{ 'src': 'npm:preact-compat', 'expose': 'react' }, { 'src': 'npm:preact-compat', 'expose': 'react-dom' }]]);
   return browserify({ entries: './app/js/app.js', debug: false }) // debug for sourcemaps
   .transform(babelify, { presets: ['es2015', 'stage-3', 'react'], plugins: babelPlugins });
 };
