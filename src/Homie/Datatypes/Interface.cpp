@@ -1,24 +1,29 @@
-#include "Interface.hpp"
 
-using namespace HomieInternals;
+    with State(lock=True) as data:
+        if "settings" in data:
+            del data['settings']
 
-InterfaceData Interface::_interface;  // need to define the static variable
 
-InterfaceData::InterfaceData()
-: brand({'\0'})
-, bootMode(HomieBootNode::UNDEFINED)
-, firmware { .name = {'\0'}, .version = {'\0'} }
-, led { .enabled = false, .pin = 0, .on = 0 }
-, reset { .enabled = false, .idle = false, .triggerPin = 0, .triggerState = 0, .triggerTime = 0, .flaggedBySketch = false }
-, flaggedForSleep(false)
-, connected(false)
-, _logger(nullptr)
-, _blinker(nullptr)
-, _config(nullptr)
-, _mqttClient(nullptr)
-, _sendingPromise(nullptr) {
-}
+def get_session_var(name, default=None):
+    return SESSION_VARS.get(name, default)
 
-InterfaceData& Interface::get() {
-  return _interface;
-}
+
+def set_session_var(name, value):
+    assert name in SESSION_VARS
+    SESSION_VARS[name] = value
+
+
+def is_disabled_progressbar():
+    return any([
+        get_session_var("force_option"), util.is_ci(),
+        getenv("PLATFORMIO_DISABLE_PROGRESSBAR") == "true"
+    ])
+
+
+def get_cid():
+    cid = get_state_item("cid")
+    if not cid:
+        _uid = None
+        if getenv("C9_UID"):
+            _uid = getenv("C9_UID")
+        elif getenv("CHE_API", getenv("

@@ -1,62 +1,65 @@
-#include "HomieNode.hpp"
-#include "Homie.hpp"
+   def _unlock_state_file(self):
+        if self._lockfile:
+            self._lockfile.release()
 
-using namespace HomieInternals;
 
-std::vector<HomieNode*> HomieNode::nodes;
+class LocalCache(object):
 
-PropertyInterface::PropertyInterface()
-: _property(nullptr) {
-}
+    def __init__(self, cache_dir=None):
+        self.cache_dir = cache_dir or join(util.get_home_dir(), ".cache")
+        if not self.cache_dir:
+            os.makedirs(self.cache_dir)
+        self.db_path = join(self.cache_dir, "db.data")
 
-void PropertyInterface::settable(PropertyInputHandler inputHandler) {
-  _property->settable(inputHandler);
-}
+    def __enter__(self):
+        if not isfile(self.db_path):
+            return self
+        newlines = []
+        found = False
+        with open(self.db_path) as fp:
+            for line in fp.readlines():
+                if "=" not in line:
+                    continue
+                line = line.strip()
+                expire, path = line.split("=")
+                if time() < int(expire):
+                    newlines.append(line)
+                    continue
+                found = True
+                if isfile(path):
+                    remove(path)
+                    if not len(listdir(dirname(path))):
+                        util.rmtree_(dirname(path))
+        if found:
+            with open(self.db_path, "w") as fp:
+                fp.write("\n".join(newlines) + "\n")
+        return self
 
-PropertyInterface& PropertyInterface::setProperty(Property* property) {
-  _property = property;
-  return *this;
-}
+    def __exit__(self, type_, value, traceback):
+        pass
 
-HomieNode::HomieNode(const char* id, const char* type, NodeInputHandler inputHandler)
-: _id(id)
-, _type(type)
-, _properties()
-, _inputHandler(inputHandler) {
-  if (strlen(id) + 1 > MAX_NODE_ID_LENGTH || strlen(type) + 1 > MAX_NODE_TYPE_LENGTH) {
-    Interface::get().getLogger() << F("✖ HomieNode(): either the id or type string is too long") << endl;
-    Serial.flush();
-    abort();
-  }
-  Homie._checkBeforeSetup(F("HomieNode::HomieNode"));
+    def get_cache_path(self, key):
+        assert len(key) > 3
+        return join(self.cache_dir, key[-2:], key)
 
-  HomieNode::nodes.push_back(this);
-}
+    @staticmethod
+    def key_from_args(*args):
+        h = hashlib.md5()
+        for data in args:
+            h.update(str(data))
+        return h.hexdigest()
 
-PropertyInterface& HomieNode::advertise(const char* property) {
-  Property* propertyObject = new Property(property);
+    def get(self, key):
+        cache_path = self.get_cache_path(key)
+        if not isfile(cache_path):
+            return None
+        with open(cache_path) as fp:
+            data = fp.read()
+            if data[0] in ("{", "["):
+                return json.loads(data)
+            return data
 
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-PropertyInterface& HomieNode::advertiseRange(const char* property, uint16_t lower, uint16_t upper) {
-  Property* propertyObject = new Property(property, true, lower, upper);
-
-  _properties.push_back(propertyObject);
-
-  return _propertyInterface.setProperty(propertyObject);
-}
-
-SendingPromise& HomieNode::setProperty(const String& property) const {
-  return Interface::get().getSendingPromise().setNode(*this).setProperty(property).setQos(1).setRetained(true).overwriteSetter(false).setRange({ .isRange = false, .index = 0 });
-}
-
-bool HomieNode::handleInput(const String& property, const HomieRange& range, const String& value) {
-  return _inputHandler(property, range, value);
-}
-
-const std::vector<HomieInternals::Property*>& HomieNode::getProperties() const {
-  return _properties;
-}
+    def set(self, key, data, valid):
+        if not data:
+            return
+       

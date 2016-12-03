@@ -1,26 +1,22 @@
-#pragma once
+aScript")
+        return LibBuilderBase.extra_script.fget(self)
 
-#include "Arduino.h"
+    @property
+    def lib_archive(self):
+        if "libArchive" in self._manifest.get("build", {}):
+            return self._manifest.get("build").get("libArchive")
+        return LibBuilderBase.lib_archive.fget(self)
 
-#include <ArduinoJson.h>
-#include "../Limits.hpp"
-#include "../../HomieSetting.hpp"
+    @property
+    def lib_ldf_mode(self):
+        if "libLDFMode" in self._manifest.get("build", {}):
+            return int(self._manifest.get("build").get("libLDFMode"))
+        return LibBuilderBase.lib_ldf_mode.fget(self)
 
-namespace HomieInternals {
-struct ConfigValidationResult {
-  bool valid;
-  String reason;
-};
+    def is_platforms_compatible(self, platforms):
+        items = self._manifest.get("platforms")
+        if not items:
+            return LibBuilderBase.is_platforms_compatible(self, platforms)
+        return self.items_in_list(platforms, items)
 
-class Validation {
- public:
-  static ConfigValidationResult validateConfig(const JsonObject& object);
-
- private:
-  static ConfigValidationResult _validateConfigRoot(const JsonObject& object);
-  static ConfigValidationResult _validateConfigWifi(const JsonObject& object);
-  static ConfigValidationResult _validateConfigMqtt(const JsonObject& object);
-  static ConfigValidationResult _validateConfigOta(const JsonObject& object);
-  static ConfigValidationResult _validateConfigSettings(const JsonObject& object);
-};
-}  // namespace HomieInternals
+    d

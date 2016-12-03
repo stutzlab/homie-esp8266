@@ -1,94 +1,67 @@
-#include "HomieSetting.hpp"
+# Copyright 2014-present PlatformIO <contact@platformio.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-using namespace HomieInternals;
+import hashlib
+import json
+import os
+import uuid
+from copy import deepcopy
+from os import environ, getenv, listdir, remove
+from os.path import dirname, getmtime, isdir, isfile, join
+from time import time
 
-std::vector<IHomieSetting*> IHomieSetting::settings;
+import requests
+from lockfile import LockFailed, LockFile
 
-template <class T>
-HomieSetting<T>::HomieSetting(const char* name, const char* description)
-: _name(name)
-, _description(description)
-, _required(true)
-, _provided(false)
-, _value()
-, _validator([](T candidate) { return true; }) {
-  IHomieSetting::settings.push_back(this);
+from platformio import __version__, exception, util
+from platformio.exception import InvalidSettingName, InvalidSettingValue
+
+DEFAULT_SETTINGS = {
+    "check_platformio_interval": {
+        "description": "Check for the new PlatformIO interval (days)",
+        "value": 3
+    },
+    "check_platforms_interval": {
+        "description": "Check for the platform updates interval (days)",
+        "value": 7
+    },
+    "check_libraries_interval": {
+        "description": "Check for the library updates interval (days)",
+        "value": 7
+    },
+    "auto_update_platforms": {
+        "description": "Automatically update platforms (Yes/No)",
+        "value": False
+    },
+    "auto_update_libraries": {
+        "description": "Automatically update libraries (Yes/No)",
+        "value": False
+    },
+    "force_verbose": {
+        "description": "Force verbose output when processing environments",
+        "value": False
+    },
+    "enable_ssl": {
+        "description": "Enable SSL for PlatformIO Services",
+        "value": False
+    },
+    "enable_telemetry": {
+        "description":
+        ("Telemetry service <http://docs.platformio.org/en/stable/"
+         "userguide/cmd_settings.html?#enable-telemetry> (Yes/No)"),
+        "value": True
+    }
 }
 
-template <class T>
-T HomieSetting<T>::get() const {
-  return _value;
-}
-
-template <class T>
-bool HomieSetting<T>::wasProvided() const {
-  return _provided;
-}
-
-template <class T>
-HomieSetting<T>& HomieSetting<T>::setDefaultValue(T defaultValue) {
-  _value = defaultValue;
-  _required = false;
-  return *this;
-}
-
-template <class T>
-HomieSetting<T>& HomieSetting<T>::setValidator(std::function<bool(T candidate)> validator) {
-  _validator = validator;
-  return *this;
-}
-
-template <class T>
-bool HomieSetting<T>::validate(T candidate) const {
-  return _validator(candidate);
-}
-
-template <class T>
-void HomieSetting<T>::set(T value) {
-  _value = value;
-  _provided = true;
-}
-
-template <class T>
-bool HomieSetting<T>::isRequired() const {
-  return _required;
-}
-
-template <class T>
-const char* HomieSetting<T>::getName() const {
-  return _name;
-}
-
-template <class T>
-const char* HomieSetting<T>::getDescription() const {
-  return _description;
-}
-
-template <class T>
-bool HomieSetting<T>::isBool() const { return false; }
-
-template <class T>
-bool HomieSetting<T>::isLong() const { return false; }
-
-template <class T>
-bool HomieSetting<T>::isDouble() const { return false; }
-
-template <class T>
-bool HomieSetting<T>::isConstChar() const { return false; }
-
-template<>
-bool HomieSetting<bool>::isBool() const { return true; }
-
-template<>
-bool HomieSetting<long>::isLong() const { return true; }
-
-template<>
-bool HomieSetting<double>::isDouble() const { return true; }
-
-template<>
-bool HomieSetting<const char*>::isConstChar() const { return true; }
-
-template class HomieSetting<bool>;  // Needed because otherwise undefined reference to
-template class HomieSetting<long>;
-template class HomieSetting<double>;
-template class HomieSetting<const char*>;
+SESSION_VARS = {"command_ctx": Non

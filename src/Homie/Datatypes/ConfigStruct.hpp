@@ -1,31 +1,32 @@
-#pragma once
 
-#include "../Constants.hpp"
-#include "../Limits.hpp"
+This directory is intended for the project specific (private) libraries.
+PlatformIO will compile them to static libraries and link to executable file.
 
-namespace HomieInternals {
-struct ConfigStruct {
-  char name[MAX_FRIENDLY_NAME_LENGTH];
-  char deviceId[MAX_DEVICE_ID_LENGTH];
+The source code of each library should be placed in separate directory, like
+"lib/private_lib/[here are source files]".
 
-  struct WiFi {
-    char ssid[MAX_WIFI_SSID_LENGTH];
-    char password[MAX_WIFI_PASSWORD_LENGTH];
-  } wifi;
+For example, see how can be organized `Foo` and `Bar` libraries:
 
-  struct MQTT {
-    struct Server {
-      char host[MAX_HOSTNAME_LENGTH];
-      uint16_t port;
-    } server;
-    char baseTopic[MAX_MQTT_BASE_TOPIC_LENGTH];
-    bool auth;
-    char username[MAX_MQTT_CREDS_LENGTH];
-    char password[MAX_MQTT_CREDS_LENGTH];
-  } mqtt;
+|--lib
+|  |--Bar
+|  |  |--docs
+|  |  |--examples
+|  |  |--src
+|  |     |- Bar.c
+|  |     |- Bar.h
+|  |--Foo
+|  |  |- Foo.c
+|  |  |- Foo.h
+|  |- readme.txt --> THIS FILE
+|- platformio.ini
+|--src
+   |- main.c
 
-  struct OTA {
-    bool enabled;
-  } ota;
-};
-}  // namespace HomieInternals
+Then in `src/main.c` you should use:
+
+#include <Foo.h>
+#include <Bar.h>
+
+// rest H/C/CPP code
+
+Platf

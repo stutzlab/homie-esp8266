@@ -1,40 +1,23 @@
-#pragma once
+..  Copyright 2014-present PlatformIO <contact@platformio.org>
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
-#include "Arduino.h"
-#include "StreamingOperator.hpp"
-#include "Homie/Datatypes/Interface.hpp"
-#include "HomieRange.hpp"
+How to build PlatformIO based project
+=====================================
 
-class HomieNode;
+1. `Install PlatformIO <http://docs.platformio.org/en/stable/installation.html>`_
+2. Download `source code with examples <https://github.com/platformio/platformio-examples/archive/develop.zip>`_
+3. Extract ZIP archive
+4. Run these commands:
 
-namespace HomieInternals {
-class SendingPromise {
-  friend ::HomieNode;
+.. code-block:: bash
 
- public:
-  SendingPromise();
-  SendingPromise& setQos(uint8_t qos);
-  SendingPromise& setRetained(bool retained);
-  SendingPromise& overwriteSetter(bool overwrite);
-  SendingPromise& setRange(const HomieRange& range);
-  SendingPromise& setRange(uint16_t rangeIndex);
-  uint16_t send(const String& value);
-
- private:
-  SendingPromise& setNode(const HomieNode& node);
-  SendingPromise& setProperty(const String& property);
-  const HomieNode* getNode() const;
-  const String* getProperty() const;
-  uint8_t getQos() const;
-  HomieRange getRange() const;
-  bool isRetained() const;
-  bool doesOverwriteSetter() const;
-
-  const HomieNode* _node;
-  const String* _property;
-  uint8_t _qos;
-  bool _retained;
-  bool _overwriteSetter;
-  HomieRange _range;
-};
-}  // namespace HomieInternals
+    # Change directory to example
+    > cd platformio-examples/li
